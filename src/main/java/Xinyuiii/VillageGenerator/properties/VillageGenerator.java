@@ -9,6 +9,7 @@ import com.seedfinding.mccore.util.block.BlockDirection;
 import com.seedfinding.mccore.util.data.Pair;
 import com.seedfinding.mccore.util.pos.BPos;
 import com.seedfinding.mccore.version.MCVersion;
+import com.seedfinding.mccore.version.UnsupportedVersion;
 import com.seedfinding.mcfeature.loot.item.ItemStack;
 import com.seedfinding.mcterrain.terrain.OverworldTerrainGenerator;
 
@@ -18,6 +19,14 @@ import java.util.List;
 public class VillageGenerator {
     private List<Piece> pieces;
     private BlockBox structureBox;
+    private final MCVersion version;
+
+    VillageGenerator(MCVersion version) {
+        if (version.isNewerOrEqualTo(MCVersion.v1_14)) {
+            throw new UnsupportedVersion(version, " village");
+        }
+        this.version = version;
+    }
 
     public static List<PieceWeight> getStructureVillageWeightedPieceList(ChunkRand rand, int size) {
         List<PieceWeight> list = new ArrayList<>();
@@ -47,33 +56,25 @@ public class VillageGenerator {
     }
 
     public static Village findAndCreateComponentFactory(Start start, PieceWeight pieceWeight, List<Piece> pieces, ChunkRand rand, int minX, int minY, int minZ, BlockDirection direction, int pieceID) {
-        Class <? extends Village > oclass = pieceWeight.pieceClass;
+        Class<? extends Village> oclass = pieceWeight.pieceClass;
         Village piece = null;
         if (oclass == House4Garden.class) {
             piece = House4Garden.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == Church.class) {
+        } else if (oclass == Church.class) {
             piece = Church.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == House1.class) {
+        } else if (oclass == House1.class) {
             piece = House1.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == WoodHut.class) {
+        } else if (oclass == WoodHut.class) {
             piece = WoodHut.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == Hall.class) {
+        } else if (oclass == Hall.class) {
             piece = Hall.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == Field1.class) {
+        } else if (oclass == Field1.class) {
             piece = Field1.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == Field2.class) {
+        } else if (oclass == Field2.class) {
             piece = Field2.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == House2.class) {
+        } else if (oclass == House2.class) {
             piece = House2.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
-        }
-        else if (oclass == House3.class) {
+        } else if (oclass == House3.class) {
             piece = House3.createPiece(start, pieces, rand, minX, minY, minZ, direction, pieceID);
         }
         return piece;
@@ -83,8 +84,7 @@ public class VillageGenerator {
         int i = updatePieceWeight(start.pieceWeightList);
         if (i <= 0) {
             return null;
-        }
-        else {
+        } else {
             int j = 0;
             while (j < 5) {
                 j++;
@@ -110,8 +110,7 @@ public class VillageGenerator {
             BlockBox box = Torch.findPieceBox(start, pieces, rand, minX, minY, minZ, direction);
             if (box != null) {
                 return new Torch(start, pieceID, rand, box, direction);
-            }
-            else {
+            } else {
                 return null;
             }
         }
@@ -120,50 +119,38 @@ public class VillageGenerator {
     public static Piece generateAndAddComponent(Start start, List<Piece> pieces, ChunkRand rand, int minX, int minY, int minZ, BlockDirection direction, int pieceID) {
         if (pieceID > 50) {
             return null;
-        }
-        else if (Math.abs(minX - start.box.minX) <= 112 && Math.abs(minZ - start.box.minZ) <= 112) {
+        } else if (Math.abs(minX - start.box.minX) <= 112 && Math.abs(minZ - start.box.minZ) <= 112) {
             Piece piece = VillageGenerator.generateComponent(start, pieces, rand, minX, minY, minZ, direction, pieceID + 1);
             if (piece != null) {
                 pieces.add(piece);
                 start.pendingHouses.add(piece);
                 return piece;
-            }
-            else {
+            } else {
                 return null;
             }
-        }
-        else {
+        } else {
             return null;
         }
     }
 
-    public static Piece generateAndAddRoadPiece(Start start, List<Piece> pieces, ChunkRand rand, int minX, int minY, int minZ, BlockDirection direction, int pieceID) {
-        if (pieceID > 3 + start.terrainType) {
-            return null;
-        }
-        else if (Math.abs(minX - start.box.minX) <= 112 && Math.abs(minZ - start.box.minZ) <= 112) {
+    public static void generateAndAddRoadPiece(Start start, List<Piece> pieces, ChunkRand rand, int minX, int minY, int minZ, BlockDirection direction, int pieceID) {
+        if (pieceID > 3 + start.terrainType) return;
+        if (Math.abs(minX - start.box.minX) <= 112 && Math.abs(minZ - start.box.minZ) <= 112) {
             BlockBox box = Path.findPieceBox(start, pieces, rand, minX, minY, minZ, direction);
             if (box != null && box.minY > 10) {
                 Piece piece = new Path(start, pieceID, rand, box, direction);
                 pieces.add(piece);
                 start.pendingRoads.add(piece);
-                return piece;
             }
-            else {
-                return null;
-            }
-        }
-        else {
-            return null;
         }
     }
 
-    public boolean generate(OverworldTerrainGenerator otg, ChunkRand rand, int x, int z) {
+    public boolean generate(OverworldTerrainGenerator otg, ChunkRand rand, int chunkX, int chunkZ) {
         this.pieces = new ArrayList<>();
-        rand.setCarverSeed(otg.getWorldSeed(),x,z, MCVersion.v1_12);
-        Biome biome = otg.getBiomeSource().getBiomeForNoiseGen((x << 4) + 9, 0, (z << 4) + 9);
+        rand.setCarverSeed(otg.getWorldSeed(), chunkX, chunkZ, version);
+        Biome biome = otg.getBiomeSource().getBiomeForNoiseGen((chunkX << 4) + 9, 0, (chunkZ << 4) + 9);
         List<PieceWeight> list = getStructureVillageWeightedPieceList(rand, 0);
-        Start start = new Start(biome, 0, rand, (x << 4) + 2, (z << 4) + 2, list, 0);
+        Start start = new Start(biome, 0, rand, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, 0);
         this.pieces.add(start);
         start.buildComponent(start, this.pieces, rand);
         List<Piece> list1 = start.pendingRoads;
@@ -173,8 +160,7 @@ public class VillageGenerator {
                 int i = rand.nextInt(list2.size());
                 Piece piece1 = list2.remove(i);
                 piece1.buildComponent(start, this.pieces, rand);
-            }
-            else {
+            } else {
                 int j = rand.nextInt(list1.size());
                 Piece piece2 = list1.remove(j);
                 piece2.buildComponent(start, this.pieces, rand);
@@ -184,7 +170,8 @@ public class VillageGenerator {
         for (Piece piece : this.pieces) {
             this.structureBox.encompass(piece.box);
         }
-        this.pieces.removeIf(piece -> piece.box.intersects(this.structureBox) && !piece.addComponentParts(otg, rand, structureBox));
+        this.pieces.removeIf(piece -> piece.box.intersects(this.structureBox)
+                && !piece.addComponentParts(otg, rand, structureBox));
         return true;
     }
 

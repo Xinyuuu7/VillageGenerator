@@ -149,7 +149,12 @@ public class VillageGenerator {
         this.pieces = new ArrayList<>();
         rand.setCarverSeed(otg.getWorldSeed(), chunkX, chunkZ, version);
         Biome biome = otg.getBiomeSource().getBiomeForNoiseGen((chunkX << 4) + 9, 0, (chunkZ << 4) + 9);
-        List<PieceWeight> list = getStructureVillageWeightedPieceList(rand, 0);
+        List<PieceWeight> list;
+        if (this.version.isNewerOrEqualTo(MCVersion.v1_13)) {
+            list = getStructureVillageWeightedPieceList(rand, 0);
+        } else {
+            list = getStructureVillageWeightedPieceList(rand, 1);
+        }
         Start start = new Start(biome, 0, rand, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, 0);
         this.pieces.add(start);
         start.buildComponent(start, this.pieces, rand);

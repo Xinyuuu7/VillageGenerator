@@ -155,7 +155,12 @@ public class VillageGenerator {
         } else {
             list = getStructureVillageWeightedPieceList(rand, 1);
         }
-        Start start = new Start(biome, 0, rand, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, 0);
+        Start start;
+        if (this.version.isNewerOrEqualTo(MCVersion.v1_13)) {
+            start = new Start(biome, 0, rand, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, 0);
+        } else {
+            start = new Start(biome, 0, rand, (chunkX << 4) + 2, (chunkZ << 4) + 2, list, 1);
+        }
         this.pieces.add(start);
         start.buildComponent(start, this.pieces, rand);
         List<Piece> list1 = start.pendingRoads;

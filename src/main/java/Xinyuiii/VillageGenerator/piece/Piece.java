@@ -7,7 +7,6 @@ import com.seedfinding.mccore.util.block.BlockMirror;
 import com.seedfinding.mccore.util.block.BlockRotation;
 import com.seedfinding.mccore.util.data.Pair;
 import com.seedfinding.mccore.util.pos.BPos;
-import com.seedfinding.mccore.util.pos.CPos;
 import com.seedfinding.mcfeature.loot.item.ItemStack;
 import com.seedfinding.mcterrain.terrain.OverworldTerrainGenerator;
 
@@ -44,17 +43,12 @@ public abstract class Piece {
             return x;
         }
         else {
-            switch (direction) {
-                case NORTH:
-                case SOUTH:
-                    return this.box.minX + x;
-                case WEST:
-                    return this.box.maxX - z;
-                case EAST:
-                    return this.box.minX + z;
-                default:
-                    return x;
-            }
+            return switch (direction) {
+                case NORTH, SOUTH -> this.box.minX + x;
+                case WEST -> this.box.maxX - z;
+                case EAST -> this.box.minX + z;
+                default -> x;
+            };
         }
     }
 
@@ -68,17 +62,12 @@ public abstract class Piece {
             return z;
         }
         else {
-            switch (direction) {
-                case NORTH:
-                    return this.box.maxZ - z;
-                case SOUTH:
-                    return this.box.minZ + z;
-                case WEST:
-                case EAST:
-                    return this.box.minZ + x;
-                default:
-                    return z;
-            }
+            return switch (direction) {
+                case NORTH -> this.box.maxZ - z;
+                case SOUTH -> this.box.minZ + z;
+                case WEST, EAST -> this.box.minZ + x;
+                default -> z;
+            };
         }
     }
 
@@ -107,5 +96,11 @@ public abstract class Piece {
                     this.rotation = BlockRotation.NONE;
             }
         }
+    }
+
+    public String getName() {
+        String name = getClass().getName();
+        int start = name.indexOf("piece.") + "piece.".length();
+        return name.substring(start);
     }
 }
